@@ -49,16 +49,17 @@ if sys.argv[1] == "A":
 
 	####################### Autoencoder ########################
 	one_hots = []
-	Y = []
+
 	for x in dna:
 		one_hots.append(one_hot_encoding(x[0:14]))
-		Y.append(np.array([1]))
 
 	one_hots = np.array(one_hots)
 
 	A = autoencode(one_hots)
 	A.learn(1000)
 
+	#calculate avergae hamming distances between natural sequences and encoded sequences.
+	#this gives you a general idea of well the autoencoder works. Also visually nice
 	dists = []
 	for i,x in enumerate(A.out):
 		B = x.reshape(14,5)
@@ -85,35 +86,35 @@ elif sys.argv[1] == "C":
 	for seq in generate_negative_samples("./data/yeast-upstream-1k-negative.fa",17,137,dna):
 		neg.append(seq)
 
+	#Using the k_cross_validation generator. 20-fold cross is used here
 	for train_pos, train_neg, test_on in k_cross_validation(dna, neg, 20):
 
-		Y = [np.array([1])]*len(train_pos) + [np.array([0])]*len(train_neg)
+		Y = [np.array([1])]*len(train_pos) + [np.array([0])]*len(train_neg) #generate labels for current fold
 
-		one_hot_pos = [one_hot_encoding(x) for x in train_pos]
-		one_hot_neg = [one_hot_encoding(x) for x in train_neg]
-		one_hots = one_hot_pos + one_hot_neg
+		one_hot_pos = [one_hot_encoding(x) for x in train_pos] #list of positive one_hots. Note one_hot_encoding() returns numpy array
+		one_hot_neg = [one_hot_encoding(x) for x in train_neg] #list of negative one_hots
+		one_hots = one_hot_pos + one_hot_neg #combined lists
 
-		X = np.array(one_hots)
-		Y = np.array(Y)
+		X = np.array(one_hots) #convert to numpy array
+		Y = np.array(Y) #again convert to numpy array
 
-		nn = NeuralNetwork(X,Y,hidden_layer_size=2)
+		nn = NeuralNetwork(X,Y,hidden_layer_size=2) #new neural net
 
-		for i in range(1000):
+		for i in range(1000):#train this fold
 			nn.feedforward()
 			nn.backprop()
 
 
-		for positive, negative in test_on: #This is the test set from this fold
+		for positive, negative in test_on: #This is the test set from this fold. 
+			#save into two lists. Predictions for each test fold are added to these lists
 
 			pos_predictions.append(nn.predict(one_hot_encoding(positive)))
 			neg_predictions.append(nn.predict(one_hot_encoding(negative)))
 
-	print(pos_predictions)
-	print("\n\n")
-	print(neg_predictions)
 
+	#Generate roc curve 
 	curvy = roc()
-	for thresh in np.arange(0,1,.001):
+	for thresh in np.arange(0,1,.001): #Calculate tp and fp for several thresholds 
 
 		for i in range(len(pos_predictions)):
 			tp,fp = calculate_tp_fp(pos_predictions,neg_predictions,thresh)
@@ -126,6 +127,10 @@ elif sys.argv[1] == "C":
 elif sys.argv[1] == "T":
 
 	################### Generate test predictions ################
+
+	
+	#Test predictions are generated using the entire training set!
+	
 
 	test=[]
 	with open("./data/rap1-lieb-test.txt") as fh:

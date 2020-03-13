@@ -1,6 +1,5 @@
 import numpy as np
 
-#https://stats.stackexchange.com/questions/124651/how-do-i-incorporate-the-biases-in-my-feed-forward-neural-network
 
 class NeuralNetwork:
 	def __init__(self, x, y,hidden_layer_size=3,lr=.1,bias=True):
@@ -9,21 +8,31 @@ class NeuralNetwork:
 		self.weights1 = np.random.rand(self.input.shape[1],self.hidden_layer_size) 
 		self.weights2 = np.random.rand(self.hidden_layer_size,1)
 
-		self.lr = lr #incorporate this  
+		#Learning rate: This value is multiplied to the gradient in the backprop method
+		self.lr = lr 
 
 		self.y = y
 		self.output = np.zeros(self.y.shape)
 
 	def feedforward(self):
 
-		#original
+		"""
+			Layer1 consists of taking the dot between the input layer and weights1. Sigmoid is applied afterwards
+			Layer2: The output from layer1 is then dotted with weights2. Sigmoid is applied afterward
+		"""
+
 		self.layer1 = self.sigmoid(np.dot(self.input, self.weights1))
 		self.output = self.sigmoid(np.dot(self.layer1, self.weights2))
 	
 	def backprop(self):
-		# application of the chain rule to find derivative of the loss function with respect to weights2 and weights1
+		"""
+			After each feedforward the derivatives are calculated and used to adjust weights1 and weights2
+			The derivatives here calculated using the chain rule. Note that d_weights2 is caculated first
+			and then d_weights1 follows. The derv of the MSE cost function is written here as 2*(self.y - self.output)
 
-		#Original
+			The derivative of the sigmoid is provided in a seperate method. 
+		"""
+
 		d_weights2 = self.lr * np.dot(self.layer1.T, (2*(self.y - self.output) * self.sigmoid_derivative(self.output)))
 		d_weights1 = self.lr * np.dot(self.input.T,  (np.dot(2*(self.y - self.output) * self.sigmoid_derivative(self.output), self.weights2.T) * self.sigmoid_derivative(self.layer1)))
 		
@@ -32,6 +41,11 @@ class NeuralNetwork:
 		self.weights2 += d_weights2
 
 	def predict(self,test):
+		"""
+			This method is used to predict new inputs by multiplying the input vector with weights1 and 
+			then weights2. Sigmoid is applied to both calculations.
+		"""
+
 		predict1 = self.sigmoid(np.dot(test, self.weights1))
 		predict2 = self.sigmoid(np.dot(predict1, self.weights2))
 

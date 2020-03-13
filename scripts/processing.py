@@ -2,6 +2,10 @@ import numpy as np
 import random 
 
 def one_hot_encoding(dna_string):
+	"""
+		The input of the neural network is a flattened one hot encoding of a DNA sequence. Each nucleotide 
+		in a given DNA string is represented with a unique 0/1 permutation in a vector of length 5. 
+	"""
 
 	one_hot = np.zeros((len(dna_string),5))
 
@@ -19,6 +23,10 @@ def one_hot_encoding(dna_string):
 	return one_hot.flatten()
 
 def decoder(input_array):
+	"""
+		This was used to decode one hots back into strings to observe how well the 
+		autoencoder worked
+	"""
 	max_index = np.argmax(input_array, axis=1)
 	decode_dict = {0:"A",1:"T",2:"G",3:"C",4:"N"}
 
@@ -26,6 +34,10 @@ def decoder(input_array):
 	return "".join(out_string)
 
 def hamming_distance(str1,str2):
+
+	"""
+		distnace between two equally length sequences 
+	"""
 
 	distance = sum([ 1 if a != b else 0 for a,b in zip(str1,str2)])
 
@@ -53,6 +65,12 @@ def parse_fasta(filename):
 
 
 def generate_negative_samples(filename,kmer_length,number_of_samples,positive_list):
+
+	"""
+		This function is a generator. It will continue to output negative samples until it reaches the 
+		stop condition, number_of_samples. X is only incremented when a negative sample was sampled that
+		is not included in the pased positive_list. 
+	"""
 	
 	seqs = parse_fasta(filename)
 
